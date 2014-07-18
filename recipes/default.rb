@@ -67,6 +67,7 @@ else
       if node['ephemeral_lvm']['encryption_key'].to_s.empty?
         # Passing 128 to hex returns string of 128*2=256
         node.set['ephemeral_lvm']['encryption_key'] = SecureRandom.hex(128)
+        node.save #Do not loose it if chef run fails
       end
       encryption_key = node['ephemeral_lvm']['encryption_key']
 
