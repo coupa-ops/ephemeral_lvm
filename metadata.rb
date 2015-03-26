@@ -10,8 +10,8 @@ supports 'ubuntu'
 supports 'centos'
 supports 'debian'
 
-depends 'lvm', '~> 1.0.8'
-depends 'filesystem', '~> 0.8.3'
+depends 'lvm', '~> 1.3.6'
+depends 'filesystem', '~> 0.10.0'
 
 recipe "ephemeral_lvm::default", "Sets up ephemeral devices on a cloud server"
 
