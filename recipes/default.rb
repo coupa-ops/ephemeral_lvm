@@ -56,6 +56,7 @@ else
     logical_volume_device_name = node['ephemeral_lvm']['volume_group_name'].gsub(/-/,'--') + "-" + node['ephemeral_lvm']['logical_volume_name'].gsub(/-/,'--')
 
     # Encrypt if enabled
+
     if node['ephemeral_lvm']['encryption'] == true || node['ephemeral_lvm']['encryption'] == 'true'
 
       require 'securerandom'
@@ -82,6 +83,8 @@ else
         command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksOpen /dev/mapper/#{logical_volume_device_name} encrypted-#{logical_volume_device_name} --key-file=-"
         not_if { ::File.exists?("/dev/mapper/encrypted-#{logical_volume_device_name}") }
       end
+	else
+	  Chef::Log.info "Ecnrypting skipped, node['ephemeral_lvm']['encryption'] == #{node['ephemeral_lvm']['encryption']}"
     end
 
     # Format, add fstab entry, and mount
