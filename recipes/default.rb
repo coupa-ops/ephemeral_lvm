@@ -99,7 +99,7 @@ else
       )
       mount node['ephemeral_lvm']['mount_point']
       pass 0
-      options "defaults,noatime"
+      options "defaults,noatime,nodev"
       action [:create, :enable, :mount]
     end
   end
