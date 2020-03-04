@@ -82,6 +82,8 @@ else
         command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksOpen /dev/mapper/#{logical_volume_device_name} encrypted-#{logical_volume_device_name} --key-file=-"
         not_if { ::File.exists?("/dev/mapper/encrypted-#{logical_volume_device_name}") }
       end
+    else
+      Chef::Log.info "Encrypting skipped, node['ephemeral_lvm']['encryption'] = #{node['ephemeral_lvm']['encryption']}"
     end
 
     # Format, add fstab entry, and mount

@@ -40,3 +40,6 @@ default['ephemeral_lvm']['encryption'] = false
 
 # Encryption key
 default['ephemeral_lvm']['encryption_key'] = nil
+
+# Does ephemeral device type nvme?
+default['ephemeral_lvm']['nvme_device'] = false
