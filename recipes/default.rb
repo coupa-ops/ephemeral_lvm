@@ -84,7 +84,7 @@ else
         not_if { ::File.exists?("/dev/mapper/encrypted-#{logical_volume_device_name}") }
       end
 	else
-	  Chef::Log.info "Ecnrypting skipped, node['ephemeral_lvm']['encryption'] == #{node['ephemeral_lvm']['encryption']}"
+	  Chef::Log.info "Encrypting skipped, node['ephemeral_lvm']['encryption'] == #{node['ephemeral_lvm']['encryption']}"
     end
 
     # Format, add fstab entry, and mount
