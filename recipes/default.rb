@@ -54,9 +54,12 @@ else
     end
 
     logical_volume_device_name = node['ephemeral_lvm']['volume_group_name'].gsub(/-/,'--') + "-" + node['ephemeral_lvm']['logical_volume_name'].gsub(/-/,'--')
+    ephemeral_lvm_encryption = node['ephemeral_lvm']['encryption'] == true || node['ephemeral_lvm']['encryption'] == 'true'
+    logical_volume_device_encrypted_name = "/dev/mapper/encrypted-#{logical_volume_device_name}"
+    logical_volume_device_plain_name = "/dev/mapper/#{logical_volume_device_name}"
 
     # Encrypt if enabled
-    if node['ephemeral_lvm']['encryption'] == true || node['ephemeral_lvm']['encryption'] == 'true'
+    if ephemeral_lvm_encryption
 
       require 'securerandom'
 
@@ -73,31 +76,33 @@ else
 
       execute 'cryptsetup format ephemeral_lvm' do
         environment 'ENCRYPTION_KEY' => encryption_key
-        command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksFormat /dev/mapper/#{logical_volume_device_name} --batch-mode"
-        not_if "cryptsetup isLuks /dev/mapper/#{logical_volume_device_name}"
+        command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksFormat #{logical_volume_device_plain_name} --batch-mode"
+        not_if "cryptsetup isLuks #{logical_volume_device_plain_name}"
       end
 
       execute 'cryptsetup open ephemeral_lvm' do
         environment 'ENCRYPTION_KEY' => encryption_key
-        command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksOpen /dev/mapper/#{logical_volume_device_name} encrypted-#{logical_volume_device_name} --key-file=-"
-        not_if { ::File.exists?("/dev/mapper/encrypted-#{logical_volume_device_name}") }
+        command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksOpen #{logical_volume_device_plain_name} encrypted-#{logical_volume_device_name} --key-file=-"
+        not_if { ::File.exist?(logical_volume_device_encrypted_name) }
       end
+    else
+      Chef::Log.info "Encrypting skipped, node['ephemeral_lvm']['encryption'] = #{ephemeral_lvm_encryption}"
     end
 
     # Format, add fstab entry, and mount
     filesystem logical_volume_device_name do
       fstype node['ephemeral_lvm']['filesystem']
       device(
-        if node['ephemeral_lvm']['encryption'] == true || node['ephemeral_lvm']['encryption'] == 'true'
-          "/dev/mapper/encrypted-#{logical_volume_device_name}"
+        if ephemeral_lvm_encryption
+          logical_volume_device_encrypted_name
         else
-          "/dev/mapper/#{logical_volume_device_name}"
+          logical_volume_device_plain_name
         end
       )
       mount node['ephemeral_lvm']['mount_point']
       pass 0
-      options "defaults,noatime,nodev"
-      action [:create, :enable, :mount]
+      options 'defaults,noatime,nodev'
+      action [:create, :mount]
     end
   end
 end
