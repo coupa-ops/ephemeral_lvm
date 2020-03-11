@@ -45,10 +45,13 @@ module EphemeralLvm
 		# c5/m5/r5 root device is nmve divice, so skip all mounted devices 
 
         if node['ec2']
-			Dir.glob("/dev/nvme*n1").each do |nvme_device|
-            	ephemeral_devices.push nvme_device unless ::File.read('/proc/mounts').include?(nvme_device)
-			end
-		end
+          Dir.glob('/dev/nvme*n1').each do |nvme_device|
+            unless ::File.read('/proc/mounts').include?(nvme_device)
+              ephemeral_devices.push nvme_device
+              node.normal['ephemeral_lvm']['nvme_device'] = true
+            end
+          end
+        end
 
         # Removes nil elements from the ephemeral_devices array if any.
         ephemeral_devices.compact!
